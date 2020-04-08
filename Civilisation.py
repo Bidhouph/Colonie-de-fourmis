@@ -8,9 +8,8 @@ from random import randint,random
 
 class Civilisation :
     def __init__(self):
-        self.rho=0.001 # float (taux d'evaporation des pheromones)
+        self.rho=0.01 # float (taux d'evaporation des pheromones)
         self.villes=[] # [ville]
-        self.nville=0
         self.routes=[] # [route]
         self.nid=None # ville
         self.source=None # ville
@@ -28,11 +27,20 @@ class Civilisation :
         self.but1.grid(row=0,column=1)
         self.but2 = Button(self.opFrame,text="Lancer (espace)",command=self.run)
         self.but2.grid(row=0,column=2)
-        self.but3 = Button(self.opFrame,text="Aide",command=self.help)
+        self.but3 = Button(self.opFrame,text="Reset",command=self.reset)
         self.but3.grid(row=0,column=3)
-        self.but4 = Button(self.opFrame,text="Reset",command=self.reset)
+        self.but4 = Button(self.opFrame,text="Options",command=self.options)
         self.but4.grid(row=0,column=4)
+        self.but5 = Button(self.opFrame,text="Aide",command=self.help)
+        self.but5.grid(row=0,column=5)
         self.opFrame.pack()
+
+        # Objets tkinter pour le panel des options
+        self.opWin=None
+        self.opEntry1 = None
+        self.opEntry2 = None
+        self.opEntry3 = None
+        self.opBut = None
 
         # Canvas
         self.can=Canvas(self.window,width=800, height=800)
@@ -71,11 +79,23 @@ class Civilisation :
         self.popup2=self.can.create_window((x,y+15),window = self.button)
         self.entry.focus_set()
 
+        # Désactivation des binds
+        self.can.bind("<ButtonPress-1>",lambda event : None)
+        self.can.bind("<ButtonRelease-1>",lambda event : None)
+        self.can.bind("<Button-3>",lambda event : None)
+        self.window.bind("<space>",lambda event : None)
+
     def callback(self):
         text=self.entry.get()
         self.can.delete(self.popup)
         self.can.delete(self.popup2)
         self.addVille(Ville(self,self.villeTemps[0],self.villeTemps[1],text))
+
+        # Réactivation des bind
+        self.can.bind("<ButtonPress-1>",lambda event : self.lpress(event))
+        self.can.bind("<ButtonRelease-1>",lambda event : self.lrelease(event))
+        self.can.bind("<Button-3>",lambda event : self.rclic(event))
+        self.window.bind("<space>",lambda event : self.run())
 
     def addRoute(self,route):
         self.routes.append(route)
@@ -130,18 +150,15 @@ class Civilisation :
         self.addRoute(Route(self,self.villes[1],self.villes[3]))
         self.addRoute(Route(self,self.villes[3],self.villes[6]))
 
-        # Les fourmis
-        self.ants=[Ant(self,4*random(),4*random(),4*random(),self.lifeSpan) for _ in range (self.nants)]
 
     def updatePhero(self):
         for route in self.routes:
             route.updatePhero()
 
     def run(self):
-        self.nville=len(self.villes)
-        for frame in range(self.tempSimu):
-            # Les fourmis se deplacent et on tue les perdantes
-            print('tour '+str(frame))
+        print(self.nants)
+        self.ants=[Ant(self,4*random(),4*random(),4*random(),self.lifeSpan) for _ in range (self.nants)]
+        for frame in range(1,self.tempSimu):
             i=0
             while(i<len(self.ants)):
                 if (self.ants[i].alive):
@@ -160,8 +177,9 @@ class Civilisation :
                 self.ants=self.ants+newpop
             else:
                 print('Population morte !')
-                break
         self.updatePhero()
+
+
 
     def help(self):
         win = Tk()
@@ -176,3 +194,27 @@ class Civilisation :
         self.source=None # ville
         self.ants=None # [ant]
         self.nants=50
+
+    def options(self):
+        self.opWin = Tk()
+        Label(self.opWin,text='Nombre de fourmis').grid(row=0,column=0)
+        self.opEntry1 = Entry(self.opWin)
+        self.opEntry1.grid(row=0,column=1)
+        Label(self.opWin,text='Une fourmis met environ 100 tours à traverser la largeur du canevas').grid(row=1,column=0,columnspan=2)
+        Label(self.opWin,text='Nombre de tours de simulation').grid(row=2,column=0)
+        self.opEntry2 = Entry(self.opWin)
+        self.opEntry2.grid(row=2,column=1)
+        Label(self.opWin,text='Temps de vie moyen (en tours) des fourmis').grid(row=3,column=0)
+        self.opEntry3 = Entry(self.opWin)
+        self.opEntry3.grid(row=3,column=1)
+        self.opBut = Button(self.opWin,text='OK',command=self.callback2)
+        self.opBut.grid(row=4,column=0,columnspan=2)
+
+    def callback2(self):
+        try:
+            self.nants=int(self.opEntry1.get())
+            self.tempSimu=int(self.opEntry2.get())
+            self.lifeSpan=int(self.opEntry3.get())
+            self.opWin.destroy()
+        except:
+            pass
