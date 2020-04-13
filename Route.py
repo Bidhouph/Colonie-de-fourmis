@@ -21,7 +21,7 @@ class Route :
         self.text=self.master.can.create_window((x,y),window=self.label)
 
     def evapore(self,rho):
-        pheromone*=(1-rho)
+        self.pheromone*=(1-rho)
 
     def affiche(self):
         self.master.can.create_line(self.ville1.x,self.ville1.y,self.ville2.x,self.ville2.y,width=3)

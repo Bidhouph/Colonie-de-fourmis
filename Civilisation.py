@@ -153,6 +153,7 @@ class Civilisation :
 
     def updatePhero(self):
         for route in self.routes:
+            route.evapore(self.rho)
             route.updatePhero()
 
     def run(self):
@@ -177,7 +178,7 @@ class Civilisation :
                 self.ants=self.ants+newpop
             else:
                 print('Population morte !')
-        self.updatePhero()
+            self.updatePhero()
 
 
 
